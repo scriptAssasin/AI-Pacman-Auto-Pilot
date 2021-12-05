@@ -165,8 +165,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         def miniMax(gameState,agent,depth):
             # Terminate state #
             if not gameState.getLegalActions(agent) or depth == self.depth:
-                if(self.depth > 2):
-                    print(self.depth)
                 return [self.evaluationFunction(gameState)]
 
             nextAgent = agent + 1    
@@ -174,41 +172,37 @@ class MinimaxAgent(MultiAgentSearchAgent):
             # All ghosts have finised one round: increase depth(last ghost) #
             if agent == gameState.getNumAgents() - 1:
                 depth += 1
-
-            # Calculate nextAgent #
-
-            # Last ghost: nextAgent = pacman #
                 nextAgent = self.index
 
-            result = []
+            values = []
 
             # Availiable ghosts. Pick next ghost #                
             firstAction = gameState.getLegalActions(agent)[0]
             nextValue = miniMax(gameState.getNextState(agent,firstAction),nextAgent,depth)
 
             # Fix result with minimax value and action #
-            result.append(nextValue[0])
-            result.append(firstAction)
+            values.append(nextValue[0])
+            values.append(firstAction)
             # For every successor find minimax value #
             for action in gameState.getLegalActions(agent):
 
                 # Check if miniMax value is better than the previous one #
 
-                previousValue = result[0] # Keep previous value. Minimax
+                previousValue = values[0] # Keep previous value. Minimax
                 nextValue = miniMax(gameState.getNextState(agent,action),nextAgent,depth)
 
                 # Max agent: Pacman #
                 if agent == self.index:
                     if nextValue[0] > previousValue:
-                        result[0] = nextValue[0]
-                        result[1] = action
+                        values[0] = nextValue[0]
+                        values[1] = action
 
                 # Min agent: Ghost #
                 else:
                     if nextValue[0] < previousValue:
-                        result[0] = nextValue[0]
-                        result[1] = action
-            return result
+                        values[0] = nextValue[0]
+                        values[1] = action
+            return values
 
         # Call minMax with initial depth = 0 and get an action #
         # Pacman plays first -> agent == 0 or self.index       #
@@ -226,81 +220,71 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        def AB(gameState,agent,depth,a,b):
-            result = []
-
+        def AlphaBeta(gameState,agent,depth,maximum,minimum):
+            
             # Terminate state #
-            if not gameState.getLegalActions(agent):
-                return self.evaluationFunction(gameState),0
+            if not gameState.getLegalActions(agent) or depth == self.depth:
+                return [self.evaluationFunction(gameState)]
 
-            # Reached max depth #
-            if depth == self.depth:
-                return self.evaluationFunction(gameState),0
-
+            nextAgent = agent + 1
             # All ghosts have finised one round: increase depth #
             if agent == gameState.getNumAgents() - 1:
                 depth += 1
-
-            # Calculate nextAgent #
-
-            # Last ghost: nextAgent = pacman #
-            if agent == gameState.getNumAgents() - 1:
                 nextAgent = self.index
 
-            # Availiable ghosts. Pick next ghost #
+            values = []
+
+            firstAction = gameState.getLegalActions(agent)[0]
+            nextState = gameState.getNextState(agent,firstAction)
+            nextValue = AlphaBeta(nextState,nextAgent,depth,maximum,minimum)
+            values.append(nextValue[0])
+            values.append(firstAction)
+
+            if agent == self.index:
+                maximum = max(values[0],maximum)
             else:
-                nextAgent = agent + 1
+                minimum = min(values[0],minimum)
 
             # For every successor find minmax value #
             for action in gameState.getLegalActions(agent):
-                if not result: # First move
-                    nextValue = AB(gameState.getNextState(agent,action),nextAgent,depth,a,b)
+                # Check if minMax value is better than the previous one #
+                # Chech if we can overpass some nodes                   #
 
-                    # Fix result #
-                    result.append(nextValue[0])
-                    result.append(action)
-
-                    # Fix initial a,b (for the first node) #
-                    if agent == self.index:
-                        a = max(result[0],a)
-                    else:
-                        b = min(result[0],b)
+                # There is no need to search next nodes                 #
+                # AB Prunning is true       
+                if agent == self.index:
+                    if values[0] > minimum:
+                        return values    
                 else:
-                    # Check if minMax value is better than the previous one #
-                    # Chech if we can overpass some nodes                   #
+                    if values[0] < maximum:
+                        return values
 
-                    # There is no need to search next nodes                 #
-                    # AB Prunning is true                                   #
-                    if result[0] > b and agent == self.index:
-                        return result
+                previousValue = values[0] # Keep previous
+                nextState = gameState.getNextState(agent,action)
+                nextValue = AlphaBeta(nextState,nextAgent,depth,maximum,minimum)
 
-                    if result[0] < a and agent != self.index:
-                        return result
+                # Max agent: Pacman #
+                if agent == self.index:
+                    if nextValue[0] > previousValue:
+                        values[0] = nextValue[0]
+                        values[1] = action
+                        # a may change #
+                        maximum = max(values[0],maximum)
 
-                    previousValue = result[0] # Keep previous value
-                    nextValue = AB(gameState.getNextState(agent,action),nextAgent,depth,a,b)
+                # Min agent: Ghost #
+                elif nextValue[0] < previousValue:
+                        values[0] = nextValue[0]
+                        values[1] = action
+                        # b may change #
+                        minimum = min(values[0],minimum)
 
-                    # Max agent: Pacman #
-                    if agent == self.index:
-                        if nextValue[0] > previousValue:
-                            result[0] = nextValue[0]
-                            result[1] = action
-                            # a may change #
-                            a = max(result[0],a)
+            return values
 
-                    # Min agent: Ghost #
-                    else:
-                        if nextValue[0] < previousValue:
-                            result[0] = nextValue[0]
-                            result[1] = action
-                            # b may change #
-                            b = min(result[0],b)
-            return result
-
-        # Call AB with initial depth = 0 and -inf and inf(a,b) values      #
+        # Call AB with initial depth = 0 and -inf and inf(maximum,minimum) values      #
         # Get an action                                                    #
         # Pacman plays first -> self.index                                 #
-        return AB(gameState,self.index,0,-float("inf"),float("inf"))[1]
+
+        return AlphaBeta(gameState,self.index,0,-sys.float_info.max,sys.float_info.max)[1]
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
@@ -435,7 +419,7 @@ def betterEvaluationFunction(currentGameState):
         foodDistances.append(manhattanDistance(newPos, x))
 
     #If there is at least one food
-    if len(foodDistances) is not 0:
+    if len(foodDistances) != 0:
         score += foodValue / min(foodDistances)
     
     #Return the final Score
