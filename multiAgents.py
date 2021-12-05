@@ -163,15 +163,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         def miniMax(gameState,agent,depth):
-            result = []
-
             # Terminate state #
-            if not gameState.getLegalActions(agent):
-                return self.evaluationFunction(gameState),0
+            if not gameState.getLegalActions(agent) or depth == self.depth:
+                if(self.depth > 2):
+                    print(self.depth)
+                return [self.evaluationFunction(gameState)]
 
-            # Reached max depth #
-            if depth == self.depth:
-                return self.evaluationFunction(gameState),0
+            nextAgent = agent + 1    
 
             # All ghosts have finised one round: increase depth(last ghost) #
             if agent == gameState.getNumAgents() - 1:
@@ -180,40 +178,36 @@ class MinimaxAgent(MultiAgentSearchAgent):
             # Calculate nextAgent #
 
             # Last ghost: nextAgent = pacman #
-            if agent == gameState.getNumAgents() - 1:
                 nextAgent = self.index
 
-            # Availiable ghosts. Pick next ghost #
-            else:
-                nextAgent = agent + 1
+            result = []
 
+            # Availiable ghosts. Pick next ghost #                
+            firstAction = gameState.getLegalActions(agent)[0]
+            nextValue = miniMax(gameState.getNextState(agent,firstAction),nextAgent,depth)
+
+            # Fix result with minimax value and action #
+            result.append(nextValue[0])
+            result.append(firstAction)
             # For every successor find minimax value #
             for action in gameState.getLegalActions(agent):
 
-                if not result: # First move
-                    nextValue = miniMax(gameState.getNextState(agent,action),nextAgent,depth)
+                # Check if miniMax value is better than the previous one #
 
-                    # Fix result with minimax value and action #
-                    result.append(nextValue[0])
-                    result.append(action)
+                previousValue = result[0] # Keep previous value. Minimax
+                nextValue = miniMax(gameState.getNextState(agent,action),nextAgent,depth)
+
+                # Max agent: Pacman #
+                if agent == self.index:
+                    if nextValue[0] > previousValue:
+                        result[0] = nextValue[0]
+                        result[1] = action
+
+                # Min agent: Ghost #
                 else:
-
-                    # Check if miniMax value is better than the previous one #
-
-                    previousValue = result[0] # Keep previous value. Minimax
-                    nextValue = miniMax(gameState.getNextState(agent,action),nextAgent,depth)
-
-                    # Max agent: Pacman #
-                    if agent == self.index:
-                        if nextValue[0] > previousValue:
-                            result[0] = nextValue[0]
-                            result[1] = action
-
-                    # Min agent: Ghost #
-                    else:
-                        if nextValue[0] < previousValue:
-                            result[0] = nextValue[0]
-                            result[1] = action
+                    if nextValue[0] < previousValue:
+                        result[0] = nextValue[0]
+                        result[1] = action
             return result
 
         # Call minMax with initial depth = 0 and get an action #
