@@ -2,19 +2,19 @@
 
 ΕΞΗΓΗΣΗ 2ΟΥ ΕΡΩΤΗΜΑΤΟΣ - MINMAX
 
-Δημιουργείται μία αναδρομική συνάρτηση - υποσυνάρτηση της getAction η οποία παίρνει ως ορίσματα ένα τρέχων gamestate ένα agent (agent είναι ή ο pacman ή τα φαντάσματα
-αν agent=0 μιλάμε για τον pacman αν agent >= 1 μιλάμε για φάντασμα) και το βάθος
+A recursive function - subfunction of getAction is created which takes as arguments a current gamestate an agent (agent is either pacman or the ghosts
+if agent=0 we refer to pacman if agent >= 1 we refer to ghost) and the depth
 
-Συνθήκη τερματισμού της αναδρομής:
+Recursion termination condition
 
-(Η συνάρτηση gameState.getLegalActions επιστρέφει τις διαθέσιμες κινήσεις που μπορεί να κάνει ο εκάστοτε agent)
+(The gameState.getLegalActions function returns the available actions that the agent can take)
 
-Αν η gameState.getLegalActions δεν επιστρέφει κάποια κίνηση ή φτάσουμε στο μέγιστο βάθος τότε τερματίζει η αναδρομή επιστρέφοντας την τιμή της συνάρτησης αξιολόγησης (που φτιάξαμε στο πρώτο ερώτημα) για το τρέχων gameState.
+If gameState.getLegalActions does not return any action or we reach the maximum depth then it terminates the recursion returning the value of the evaluation function (created in the first query) for the current gameState
 
-Η default περίπτωση είναι σε κάθε κλήση να αυξάνουμε το agent (όχι το αυτούσιο) την μεταβλητή nextAgent
+The default case is in each call to increase the agent (not the actual one) the nextAgent variable
 
-Επειδή η συνάρτηση κάνει αναδρομικές κλήσεις και κάθε φορά όταν καλεί τον εαυτό της βάζει για δεύτερο όρισμα το nextAgent όταν φτάσουμε να είναι το nextAgent ίσο με τον συνολικό αριθμό των agents (1 pacman + 2 φαντάσματα) - 1 επειδή ξεκινάμε από το 0, τότε nextAgent=0 και ξαναγυρίζουμε στον pacman
+Because the function makes recursive calls and every time it calls itself it puts nextAgent as the second argument when we get nextAgent to be equal to the total number of agents (1 pacman + 2 ghosts) - 1 because we start from 0, then nextAgent =0 and we go back to pacman
 
-δημιουργούμε την λίστα result 
+we create the result list
 
-κάνουμε append
+finally we append
