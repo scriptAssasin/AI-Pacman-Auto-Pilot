@@ -1,7 +1,5 @@
 # ergasia2_texniti
 
-ΕΞΗΓΗΣΗ 2ΟΥ ΕΡΩΤΗΜΑΤΟΣ - MINMAX
-
 A recursive function - subfunction of getAction is created which takes as arguments a current gamestate an agent (agent is either pacman or the ghosts
 if agent=0 we refer to pacman if agent >= 1 we refer to ghost) and the depth
 
